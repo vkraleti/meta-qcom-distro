@@ -6,6 +6,7 @@ SRC_URI += "\
     file://10-growfs-root.conf \
     file://growfs-root.preset \
 "
+SRC_URI:append:qcom-distro:sota = " file://20-sota-growfs-root.conf"
 
 inherit allarch features_check systemd
 REQUIRED_DISTRO_FEATURES = "systemd"
@@ -19,6 +20,13 @@ do_install() {
             ${D}${systemd_unitdir}/system-preset/98-growfs-root.preset
     install -Dm 0644 ${UNPACKDIR}/10-growfs-root.conf \
             ${D}${systemd_unitdir}/system/systemd-growfs-root.service.d/10-growfs-root.conf
+}
+
+# On qcom-distro SOTA (ostree) images "/" is not a growable filesystem;
+# override the service via a higher-priority drop-in to grow /sysroot instead.
+do_install:append:qcom-distro:sota() {
+    install -Dm 0644 ${UNPACKDIR}/20-sota-growfs-root.conf \
+            ${D}${systemd_unitdir}/system/systemd-growfs-root.service.d/20-sota-growfs-root.conf
 }
 
 PACKAGES = "${PN}"
